@@ -1,6 +1,12 @@
 (function () {
   "use strict";
   var PAGE_HEAD = '<meta name="claude:viewport-fit-sides" content="cover"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap"><link rel="stylesheet" href="style.css">';
+  // Plausible custom event "Category click" with property "category" (public site only)
+  function track(id) {
+    if (typeof window.plausible !== "function") return;
+    var c = DATA.cats.filter(function (x) { return x.id === id; })[0];
+    try { window.plausible("Category click", { props: { category: c ? c.name : id } }); } catch (e) {}
+  }
   var DATA = JSON.parse(document.getElementById("data").textContent);
   var state = { cat: "baekur", q: "", editing: false, canEdit: false, dirty: false, flat: [], pos: 0 };
   var app = document.getElementById("app");
@@ -85,7 +91,7 @@
   }
 
   function bindPage() {
-    app.querySelectorAll("[data-cat]").forEach(function (b) { b.onclick = function () { state.cat = b.dataset.cat; render(); }; });
+    app.querySelectorAll("[data-cat]").forEach(function (b) { b.onclick = function () { state.cat = b.dataset.cat; track(b.dataset.cat); render(); }; });
     app.querySelectorAll("[data-open]").forEach(function (b) { b.onclick = function () { openItem(b.dataset.open); }; });
     app.querySelectorAll("[data-copy]").forEach(function (b) {
       b.onclick = function () {
