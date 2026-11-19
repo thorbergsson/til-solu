@@ -127,3 +127,7 @@ footer h2{font-weight:500;font-size:20px;margin:0}
 .hint.warn{color:var(--sold)}
 .catedit{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:12px}
 .catedit input{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:6px 8px;width:9em;min-width:0}
+.catfield{display:inline-flex;align-items:center}
+.catfield input{border-top-right-radius:0;border-bottom-right-radius:0}
+.catdel{appearance:none;font:inherit;font-size:15px;line-height:1;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-left:0;border-radius:0 4px 4px 0;padding:7px 9px;cursor:pointer}
+.catdel:hover{color:var(--sold)}

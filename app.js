@@ -35,7 +35,6 @@
       }).join("") + '</nav>' + catEditor() +
       '<section class="grid" aria-live="polite">' + (items.length ? items.map(card).join("") : emptyText()) + '</section>' +
       '<footer class="contact" id="hafa-samband"><h2>Hafa samband</h2>' +
-      '<p class="intro" data-f="contactNote"' + ed + '>' + esc(s.contactNote) + '</p>' +
       '<div class="lines">' +
       contactLine("Netfang", "email", s.email, "mailto:" + s.email, ed) +
       contactLine("S\u00edmi / SMS", "phone", s.phone, "sms:" + s.phone.replace(/\s/g, ""), ed) +
@@ -63,13 +62,15 @@
         return '<img loading="lazy" src="' + esc(src("thumb", im)) + '" alt="' + (i ? "" : esc(x.title)) + '">';
       }).join("") + (x.sold ? SOLD : "") + '</div>' +
       '<h3>' + esc(x.title) + '</h3>' +
-      '<p class="sub"><span class="ref">' + esc(x.ref) + '</span>' + (sub ? " \u00b7 " + esc(sub) : "") + (x.rare ? " \u00b7 Safngripur" : "") + '</p></button>';
+      '<p class="sub"><span class="ref">' + esc(x.ref) + '</span>' + (sub ? " \u00b7 " + esc(sub) : "") + '</p></button>';
   }
   function catEditor() {
     if (!state.editing) return "";
     return '<div class="catedit"><span class="hint">Heiti flokka</span>' + DATA.cats.map(function (c, i) {
-      return '<input data-catname="' + i + '" value="' + esc(c.name) + '" aria-label="Heiti flokks">';
-    }).join("") + '</div>';
+      return '<span class="catfield"><input data-catname="' + i + '" value="' + esc(c.name) + '" aria-label="Heiti flokks">' +
+        '<button type="button" class="catdel" data-catdel="' + i + '" aria-label="Ey\u00f0a flokki ' + esc(c.name) + '">\u00d7</button></span>';
+    }).join("") + '<button type="button" class="btn" data-catadd>+ N\u00fdr flokkur</button>' +
+      '<span class="hint" id="cat-msg"></span></div>';
   }
   function editBtn() {
     if (!state.canEdit || state.editing) return "";
@@ -103,6 +104,24 @@
         markDirty();
       });
     });
+    app.querySelectorAll("[data-catdel]").forEach(function (b) {
+      b.onclick = function () {
+        var c = DATA.cats[+b.dataset.catdel], n = byCat(c.id).length, msg = document.getElementById("cat-msg");
+        if (n) { msg.textContent = "\u201e" + c.name + "\u201c hefur " + n + " muni. F\u00e6r\u00f0u \u00fe\u00e1 \u00ed annan flokk fyrst."; msg.className = "hint warn"; return; }
+        if (DATA.cats.length < 2) return;
+        DATA.cats.splice(+b.dataset.catdel, 1);
+        if (state.cat === c.id) state.cat = DATA.cats[0].id;
+        markDirty(); render();
+      };
+    });
+    var add = app.querySelector("[data-catadd]");
+    if (add) add.onclick = function () {
+      var base = "flokkur", id = base, k = 2;
+      while (DATA.cats.some(function (c) { return c.id === id; })) id = base + k++;
+      DATA.cats.push({ id: id, name: "N\u00fdr flokkur" });
+      state.cat = id; markDirty(); render();
+      var inp = app.querySelector('[data-catname="' + (DATA.cats.length - 1) + '"]'); if (inp) { inp.focus(); inp.select(); }
+    };
     app.querySelectorAll("[data-act]").forEach(function (b) { b.onclick = function () { act(b.dataset.act); }; });
   }
   function selectText(el) { if (!el) return; var r = document.createRange(); r.selectNodeContents(el.querySelector(".v") || el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
@@ -148,7 +167,7 @@
     var nx = state.flat[(state.pos + 1) % state.flat.length]; if (nx) { var pre = new Image(); pre.src = src("full", nx.img); }
   }
   function viewPanel(x, f) {
-    var metaBits = (x.sold ? '<span class="tag sold-tag">Selt</span>' : "") + '<span class="ref">' + esc(x.ref) + '</span>' + (x.rare ? '<span class="tag">Safngripur</span>' : "");
+    var metaBits = (x.sold ? '<span class="tag sold-tag">Selt</span>' : "") + '<span class="ref">' + esc(x.ref) + '</span>';
     return (metaBits ? '<div class="meta">' + metaBits + '</div>' : "") +
       '<h2>' + esc(x.title) + '</h2>' + (x.desc ? '<p class="desc">' + esc(x.desc) + '</p>' : "") +
       (x.note ? '<p class="note">' + esc(x.note) + '</p>' : "") +
@@ -172,7 +191,6 @@
       (hasPrice(x) ? '<label>' + PRICE_LABEL + '<input id="e-price" placeholder="' + PRICE_DEFAULT + '" value="' + esc(x.price || "") + '"></label><div class="hint">Autt = \u201e' + PRICE_DEFAULT + '\u201c</div>' : "") +
       '<label>L\u00fdsing<textarea id="e-desc">' + esc(x.desc) + '</textarea></label>' +
       '<label><span><input id="e-sold" type="checkbox"' + (x.sold ? " checked" : "") + '> Selt</span></label>' +
-      '<label><span><input id="e-rare" type="checkbox"' + (x.rare ? " checked" : "") + '> Merkja sem safngrip</span></label>' +
       '<label>Athugasemd fyrir safnara<textarea id="e-note">' + esc(x.note) + '</textarea></label>' +
       '<label>B\u00f3kalisti<textarea id="e-books" class="books-ta">' + esc(bt) + '</textarea></label>' +
       '<div class="hint">Ein b\u00f3k \u00ed l\u00ednu: Titill | H\u00f6fundur | \u00c1r</div></div>';
@@ -233,7 +251,6 @@
     if (lb.querySelector("#e-price")) on("e-price", function (el) { x.price = el.value.trim(); });
     on("e-title", function (el) { x.title = el.value; });
     on("e-desc", function (el) { x.desc = el.value; });
-    on("e-rare", function (el) { x.rare = el.checked; });
     on("e-sold", function (el) { x.sold = el.checked; });
     on("e-note", function (el) { x.note = el.value; });
     on("e-books", function (el) {
