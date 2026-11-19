@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  var PAGE_HEAD = '<title>B\u00e6kur og munir til s\u00f6lu</title><meta name="claude:viewport-fit-sides" content="cover"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap"><link rel="stylesheet" href="style.css">';
+  var PAGE_HEAD = '<meta name="claude:viewport-fit-sides" content="cover"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap"><link rel="stylesheet" href="style.css">';
   var DATA = JSON.parse(document.getElementById("data").textContent);
   var state = { cat: "baekur", q: "", editing: false, canEdit: false, dirty: false, flat: [], pos: 0 };
   var app = document.getElementById("app");
@@ -21,6 +21,7 @@
   /* ---------- page ---------- */
   function render() {
     var s = DATA.site, items = visible();
+    document.title = s.title;
     var ed = state.editing ? ' contenteditable="true" spellcheck="true"' : "";
     app.innerHTML =
       '<div class="wrap">' +
@@ -87,7 +88,7 @@
       };
     });
     app.querySelectorAll("[data-f]").forEach(function (el) {
-      el.addEventListener("input", function () { DATA.site[el.dataset.f] = el.textContent.trim(); markDirty(); });
+      el.addEventListener("input", function () { DATA.site[el.dataset.f] = el.textContent.trim(); if (el.dataset.f === "title") document.title = DATA.site.title; markDirty(); });
     });
     app.querySelectorAll("[data-act]").forEach(function (b) { b.onclick = function () { act(b.dataset.act); }; });
   }
@@ -249,7 +250,7 @@
     var json = JSON.stringify(DATA).replace(/</g, "\\u003c");
     return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' +
       ':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}' +
-      '</style></head><body>' + PAGE_HEAD +
+      '</style></head><body><title>' + esc(DATA.site.title) + '</title>' + PAGE_HEAD +
       '<div id="app"></div><script type="application/json" id="data">' + json + '<\/script><script src="app.js"><\/script>' +
       '</body></html>';
   }
