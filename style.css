@@ -124,3 +124,4 @@ footer h2{font-weight:500;font-size:20px;margin:0}
 .edit .move input{flex:1;text-transform:uppercase}
 .edit .move .danger{justify-self:start;color:var(--sold);border-color:var(--line)}
 .edit .move .danger:hover{border-color:var(--sold)}
+.hint.warn{color:var(--sold)}

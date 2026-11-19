@@ -112,6 +112,7 @@
       document.body.appendChild(lb); document.body.style.overflow = "hidden";
       document.addEventListener("keydown", onKey);
     }
+    armed = "";
     var f = state.flat[state.pos], x = f.item;
     lb.setAttribute("aria-label", x.title);
     lb.innerHTML =
@@ -168,10 +169,17 @@
     var n = String(max + 1); while (n.length < 2) n = "0" + n;
     return pre + "-" + n;
   }
+  /* No confirm(): modals are blocked in the artifact frame. First click arms, second click does it. */
+  var armed = "";
+  function sure(key, msg) {
+    if (armed === key) { armed = ""; return true; }
+    armed = key; var el = lb && lb.querySelector("#e-move-msg"); if (el) { el.textContent = msg; el.className = "hint warn"; }
+    return false;
+  }
   function dropIfEmpty(x) { if (!x.imgs.length) DATA.items.splice(DATA.items.indexOf(x), 1); }
   function deleteImg(x, f) {
     var last = x.imgs.length < 2;
-    if (!confirm(last ? "\u00deetta er eina mynd " + x.ref + ". Myndinni og f\u00e6rslunni " + x.ref + " ver\u00f0ur eytt. Halda \u00e1fram?" : "Ey\u00f0a mynd " + (f.i + 1) + " \u00far " + x.ref + "?")) return;
+    if (!sure("del:" + x.id + ":" + f.i, (last ? "\u00deetta er eina mynd " + x.ref + ". Myndinni og f\u00e6rslunni ver\u00f0ur eytt." : "Ey\u00f0a mynd " + (f.i + 1) + " \u00far " + x.ref + "?") + " Smelltu aftur til a\u00f0 sta\u00f0festa.")) return;
     x.imgs.splice(f.i, 1); dropIfEmpty(x); markDirty();
     buildFlat();
     if (!state.flat.length) { lbAct("close"); return; }
@@ -184,7 +192,7 @@
     if (!key) key = nextRef(x.ref);
     var t = DATA.items.find(function (y) { return String(y.ref).toUpperCase() === key; });
     if (t === x) return "Myndin er n\u00fa \u00feegar \u00ed " + x.ref + ".";
-    if (x.imgs.length < 2 && !confirm("\u00deetta er eina mynd " + x.ref + ". F\u00e6rslunni " + x.ref + " ver\u00f0ur eytt. Halda \u00e1fram?")) return "H\u00e6tt vi\u00f0.";
+    if (x.imgs.length < 2 && !sure("move:" + x.id + ":" + key, "\u00deetta er eina mynd " + x.ref + ". F\u00e6rslunni " + x.ref + " ver\u00f0ur eytt. Smelltu aftur \u00e1 F\u00e6ra til a\u00f0 sta\u00f0festa.")) return null;
     var made = !t;
     if (made) {
       var nid = key, n2 = 2; while (DATA.items.some(function (y) { return y.id === nid; })) nid = key + "-" + n2++;
