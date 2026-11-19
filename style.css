@@ -14,7 +14,7 @@
 
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
 .wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header.top{padding-block:48px 24px;display:grid;gap:10px}
+header.top{position:relative;padding-block:48px 24px;display:grid;gap:10px}
 h1{font-weight:500;font-size:clamp(28px,4.5vw,44px);line-height:1.1;letter-spacing:-.02em;margin:0;text-wrap:balance}
 .intro{max-width:60ch;color:var(--muted);margin:0}
 [contenteditable="true"]{outline:1px dashed var(--muted);outline-offset:4px}
@@ -117,7 +117,7 @@ footer h2{font-weight:500;font-size:20px;margin:0}
 .dirty{color:var(--sold)}
 
 /* Owner-only edit link, quiet, at the bottom of the page */
-.editlink{appearance:none;border:0;background:none;padding:0;margin-top:24px;justify-self:start;font:inherit;font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.editlink{appearance:none;border:0;background:none;padding:0;position:absolute;top:20px;right:0;font:inherit;font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .editlink:hover{color:var(--fg)}
 .edit .move{padding-bottom:12px;border-bottom:1px solid var(--line);display:grid;gap:4px}
 .edit .move .row{display:flex;gap:8px}
@@ -125,3 +125,5 @@ footer h2{font-weight:500;font-size:20px;margin:0}
 .edit .move .danger{justify-self:start;color:var(--sold);border-color:var(--line)}
 .edit .move .danger:hover{border-color:var(--sold)}
 .hint.warn{color:var(--sold)}
+.catedit{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:12px}
+.catedit input{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:6px 8px;width:9em;min-width:0}

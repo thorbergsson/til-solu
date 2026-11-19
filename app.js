@@ -25,21 +25,21 @@
     var ed = state.editing ? ' contenteditable="true" spellcheck="true"' : "";
     app.innerHTML =
       '<div class="wrap">' +
-      '<header class="top">' +
+      '<header class="top">' + editBtn() +
       '<h1 data-f="title"' + ed + '>' + esc(s.title) + '</h1>' +
       '<p class="intro" data-f="intro"' + ed + '>' + esc(s.intro) + '</p></header>' +
       '<nav class="cats" aria-label="Flokkar">' + DATA.cats.map(function (c) {
         var n = byCat(c.id).length;
         return '<button class="cat" type="button" data-cat="' + c.id + '" aria-pressed="' + (c.id === state.cat) + '">' +
           esc(c.name) + '<span class="c">' + (n || "") + '</span></button>';
-      }).join("") + '</nav>' +
+      }).join("") + '</nav>' + catEditor() +
       '<section class="grid" aria-live="polite">' + (items.length ? items.map(card).join("") : emptyText()) + '</section>' +
       '<footer class="contact" id="hafa-samband"><h2>Hafa samband</h2>' +
       '<p class="intro" data-f="contactNote"' + ed + '>' + esc(s.contactNote) + '</p>' +
       '<div class="lines">' +
       contactLine("Netfang", "email", s.email, "mailto:" + s.email, ed) +
       contactLine("S\u00edmi / SMS", "phone", s.phone, "sms:" + s.phone.replace(/\s/g, ""), ed) +
-      '</div>' + editBtn() + '</footer></div>' + ownerBar();
+      '</div></footer></div>' + ownerBar();
     bindPage();
   }
   function countText(items) {
@@ -65,6 +65,12 @@
       '<h3>' + esc(x.title) + '</h3>' +
       '<p class="sub"><span class="ref">' + esc(x.ref) + '</span>' + (sub ? " \u00b7 " + esc(sub) : "") + (x.rare ? " \u00b7 Safngripur" : "") + '</p></button>';
   }
+  function catEditor() {
+    if (!state.editing) return "";
+    return '<div class="catedit"><span class="hint">Heiti flokka</span>' + DATA.cats.map(function (c, i) {
+      return '<input data-catname="' + i + '" value="' + esc(c.name) + '" aria-label="Heiti flokks">';
+    }).join("") + '</div>';
+  }
   function editBtn() {
     if (!state.canEdit || state.editing) return "";
     return '<button class="editlink" type="button" data-act="edit">Breyta</button>';
@@ -89,6 +95,13 @@
     });
     app.querySelectorAll("[data-f]").forEach(function (el) {
       el.addEventListener("input", function () { DATA.site[el.dataset.f] = el.textContent.trim(); if (el.dataset.f === "title") document.title = DATA.site.title; markDirty(); });
+    });
+    app.querySelectorAll("[data-catname]").forEach(function (el) {
+      el.addEventListener("input", function () {
+        var c = DATA.cats[+el.dataset.catname]; c.name = el.value;
+        var tab = app.querySelector('[data-cat="' + c.id + '"]'); if (tab && tab.firstChild) tab.firstChild.nodeValue = el.value;
+        markDirty();
+      });
     });
     app.querySelectorAll("[data-act]").forEach(function (b) { b.onclick = function () { act(b.dataset.act); }; });
   }
