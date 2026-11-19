@@ -147,6 +147,7 @@
     var bt = x.books.map(function (b) { return [b.t, b.a, b.y].join(" | ").replace(/( \| )+$/, ""); }).join("\n");
     var mv = '<div class="move"><label>F\u00e6ra \u00feessa mynd \u00ed anna\u00f0 n\u00famer' +
       '<span class="row"><input id="e-move" placeholder="Autt = n\u00fdtt n\u00famer" autocomplete="off"><button class="btn" type="button" id="e-move-go">F\u00e6ra</button></span></label>' +
+      '<button class="btn danger" type="button" id="e-del">Ey\u00f0a \u00feessari mynd</button>' +
       '<div class="hint" id="e-move-msg">' + esc(state.moveMsg || ("Mynd " + (f.i + 1) + " af " + x.imgs.length + " \u00ed " + x.ref + ". Skrifa\u00f0u n\u00famer, e\u00f0a skildu eftir autt til a\u00f0 b\u00faa til n\u00fdja f\u00e6rslu.")) + '</div></div>';
     state.moveMsg = "";
     return '<div class="edit">' + mv + '<div class="hint">Breytingar vistast \u00feegar \u00fe\u00fa smellir \u00e1 \u201eVista og birta\u201c.</div>' +
@@ -167,19 +168,30 @@
     var n = String(max + 1); while (n.length < 2) n = "0" + n;
     return pre + "-" + n;
   }
+  function dropIfEmpty(x) { if (!x.imgs.length) DATA.items.splice(DATA.items.indexOf(x), 1); }
+  function deleteImg(x, f) {
+    var last = x.imgs.length < 2;
+    if (!confirm(last ? "\u00deetta er eina mynd " + x.ref + ". Myndinni og f\u00e6rslunni " + x.ref + " ver\u00f0ur eytt. Halda \u00e1fram?" : "Ey\u00f0a mynd " + (f.i + 1) + " \u00far " + x.ref + "?")) return;
+    x.imgs.splice(f.i, 1); dropIfEmpty(x); markDirty();
+    buildFlat();
+    if (!state.flat.length) { lbAct("close"); return; }
+    state.pos = Math.min(state.pos, state.flat.length - 1);
+    state.moveMsg = last ? x.ref + " eytt. Mundu a\u00f0 vista." : "Mynd eytt. Mundu a\u00f0 vista.";
+    showLb();
+  }
   function moveImg(x, f, to) {
     var key = String(to || "").trim().toUpperCase();
     if (!key) key = nextRef(x.ref);
     var t = DATA.items.find(function (y) { return String(y.ref).toUpperCase() === key; });
     if (t === x) return "Myndin er n\u00fa \u00feegar \u00ed " + x.ref + ".";
-    if (x.imgs.length < 2) return "\u00deetta er eina mynd " + x.ref + ". Ekki h\u00e6gt a\u00f0 f\u00e6ra hana.";
+    if (x.imgs.length < 2 && !confirm("\u00deetta er eina mynd " + x.ref + ". F\u00e6rslunni " + x.ref + " ver\u00f0ur eytt. Halda \u00e1fram?")) return "H\u00e6tt vi\u00f0.";
     var made = !t;
     if (made) {
       var nid = key, n2 = 2; while (DATA.items.some(function (y) { return y.id === nid; })) nid = key + "-" + n2++;
       t = { cat: x.cat, title: "N\u00fdr munur " + key, imgs: [], desc: "", books: [], rare: false, note: "", ref: key, id: nid };
       DATA.items.splice(DATA.items.indexOf(x) + 1, 0, t);
     }
-    x.imgs.splice(f.i, 1); t.imgs.push(f.img); markDirty();
+    x.imgs.splice(f.i, 1); t.imgs.push(f.img); dropIfEmpty(x); markDirty();
     buildFlat();
     var k = state.flat.findIndex(function (g) { return g.item === t && g.img === f.img; });
     if (k < 0) k = state.flat.findIndex(function (g) { return g.item === x; });
@@ -191,6 +203,7 @@
     var go = lb.querySelector("#e-move-go"), inp = lb.querySelector("#e-move");
     function doMove() { var msg = moveImg(x, f, inp.value); if (msg) lb.querySelector("#e-move-msg").textContent = msg; }
     go.onclick = doMove;
+    lb.querySelector("#e-del").onclick = function () { deleteImg(x, f); };
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") doMove(); });
     function on(id, fn) { var el = lb.querySelector("#" + id); el.addEventListener("input", function () { fn(el); markDirty(); }); el.addEventListener("change", function () { fn(el); markDirty(); }); }
     on("e-ref", function (el) { x.ref = el.value.trim(); });
@@ -208,7 +221,7 @@
     });
   }
   function lbAct(a) {
-    if (a === "close") { lb.remove(); lb = null; document.body.style.overflow = ""; document.removeEventListener("keydown", onKey); render(); return; }
+    if (a === "close") { var cur = state.flat[state.pos]; if (cur && cur.item.cat !== state.cat && DATA.items.indexOf(cur.item) > -1) state.cat = cur.item.cat; lb.remove(); lb = null; document.body.style.overflow = ""; document.removeEventListener("keydown", onKey); render(); return; }
     var n = state.flat.length; state.pos = (state.pos + (a === "next" ? 1 : n - 1)) % n; showLb();
   }
   function onKey(e) {

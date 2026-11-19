@@ -122,3 +122,5 @@ footer h2{font-weight:500;font-size:20px;margin:0}
 .edit .move{padding-bottom:12px;border-bottom:1px solid var(--line);display:grid;gap:4px}
 .edit .move .row{display:flex;gap:8px}
 .edit .move input{flex:1;text-transform:uppercase}
+.edit .move .danger{justify-self:start;color:var(--sold);border-color:var(--line)}
+.edit .move .danger:hover{border-color:var(--sold)}
